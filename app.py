@@ -10,17 +10,18 @@ if "formulario_preenchido" not in st.session_state:
 
 # Se ainda não preencheu, mostra os campos de entrada
 if not st.session_state["formulario_preenchido"]:
-    func = st.sidebar.number_input('Número de funcionários', max_value=1000, value=3)
-    horas = st.sidebar.number_input('Horas por dia', min_value=0, max_value=18, value=8)
-    dias = st.sidebar.number_input('Dias ao mês', min_value=0, max_value=31, value=22)
-    pacotes = st.sidebar.number_input('Quantos pacotes produz mensalmente?', min_value=0, max_value=100000000, value=40000)
-    custo_unitario_saquinho_vazio = st.sidebar.number_input('Custo unitário do saquinho vazio em R$', min_value=0.0, max_value=10000000.0, value=0.1)
-    lucro_bruto_por_saquinho = st.sidebar.number_input('Lucro Bruto por saquinho embalado em R$', min_value=0.0, max_value=10000000.0, value=1.2)
-    custo_medio_funcionario = st.sidebar.number_input('Custo médio por funcionário em R$', min_value=0.0, max_value=100000.0, value=3000.0)
-    g_por_saquinho = st.sidebar.number_input('Quantas gramas são embaladas em um saquinho?', min_value=0.0, max_value=1000000.0, value=500.0)
-    custo_kg_produto = st.sidebar.number_input('Qual o custo do kg do seu produto em R$?', min_value=0.0, max_value=10000000.0, value=10.0)
-    gramas_mais = st.sidebar.number_input('Até quantas g a mais vão em cada saquinho?', min_value=0.0, max_value=10000000.0, value=10.0)
+    func = st.sidebar.number_input('Número de funcionários', max_value=1000)
+    horas = st.sidebar.number_input('Horas por dia', min_value=0, max_value=18)
+    dias = st.sidebar.number_input('Dias ao mês', min_value=0, max_value=31)
+    pacotes = st.sidebar.number_input('Quantos pacotes produz mensalmente?', min_value=0, max_value=100000000)
+    custo_unitario_saquinho_vazio = st.sidebar.number_input('Custo unitário do saquinho vazio em R$', min_value=0.0, max_value=10000000.0)
+    lucro_bruto_por_saquinho = st.sidebar.number_input('Lucro Bruto por saquinho embalado em R$', min_value=0.0, max_value=10000000.0)
+    custo_medio_funcionario = st.sidebar.number_input('Custo médio por funcionário em R$', min_value=0.0, max_value=100000.0)
+    g_por_saquinho = st.sidebar.number_input('Quantas gramas são embaladas em um saquinho?', min_value=0.0, max_value=1000000.0)
+    custo_kg_produto = st.sidebar.number_input('Qual o custo do kg do seu produto em R$?', min_value=0.0, max_value=10000000.0)
+    gramas_mais = st.sidebar.number_input('Até quantas g a mais vão em cada saquinho?', min_value=0.0, max_value=10000000.0)
 
+    # Só faz o cálculo após preenchimento do número de dias e horas
     if dias!= 0 and horas !=0:
         capacidade_produtiva_atual = ((pacotes/60)/dias)/horas
     perda_mes = (pacotes * custo_kg_produto * gramas_mais) / 1000
@@ -29,6 +30,7 @@ if not st.session_state["formulario_preenchido"]:
 
     # Botão para confirmar os dados e ocultar os campos
     if st.sidebar.button("Enviar Informações"):
+        # Salvando os dados no estado da sessão
         st.session_state["formulario_preenchido"] = True
         st.session_state["func"] = func 
         st.session_state["horas"] = horas
@@ -46,7 +48,7 @@ if not st.session_state["formulario_preenchido"]:
         st.session_state["capacidade_produtiva_atual_minuto"] = capacidade_produtiva_atual
 
 else:
-    # Criando um alerta piscante sobre a perda de dinheiro
+    # Criando um alerta piscante no markdown
     st.markdown(
         """
         <style>
@@ -66,6 +68,7 @@ else:
         """ + f'<h3 class="blinking-text">⚠️ ALERTA: Você está perdendo mensalmente R$ {st.session_state["perda_mes"]:.2f} em produtos desperdiçados! ⚠️</h3>',
         unsafe_allow_html=True
     )
+
     # Após preenchimento, exibe apenas a seleção da máquina na sidebar
     select = st.sidebar.selectbox('Selecione a máquina:', ['', 'Semiautomática', 'Automática'])
     if select == 'Semiautomática':
@@ -112,6 +115,7 @@ else:
         df = pd.DataFrame({'Meses': meses, 'Lucro Atual': lista_atual, 'Lucro com Máquina Semiautomática': lista_semi})
         df['Meses'] = pd.Categorical(df['Meses'], categories=ordem, ordered=True)
         df = df.sort_values('Meses')    
+
         # Financiamento para semi automática
         total = valor_semi
         sinal = total*0.25
@@ -144,7 +148,6 @@ else:
         col2.plotly_chart(reducao_de_desperdicio)
         
         if sl == 'À vista':
-            # Criando o gráfico com Plotly
             fig = px.line(df, x='Meses', y=['Lucro Atual', 'Lucro com Máquina Semiautomática'], 
               labels={'value': 'Lucro (R$)', 'Meses': 'Período'}, 
               title="Comparação de Lucro Atual vs Lucro com Máquina Semiautomática")
@@ -156,7 +159,6 @@ else:
         col3.plotly_chart(fig)
 
         if sl == 'Financiada':
-            # Criando o gráfico com Plotly
             fig = px.line(df2, x='Meses', y=['Lucro Atual', 'Lucro com Máquina Semiautomática'], 
                 labels={'value': 'Lucro (R$)', 'Meses': 'Período'}, 
                 title="Comparação de Lucro Atual vs Lucro com Máquina Semiautomática")
@@ -241,7 +243,6 @@ else:
         col2.plotly_chart(reducao_de_desperdicio)
         
         if sl == 'À vista':
-            # Criando o gráfico com Plotly
             fig = px.line(df, x='Meses', y=['Lucro Atual', 'Lucro com Máquina Automática'], 
               labels={'value': 'Lucro (R$)', 'Meses': 'Período'}, 
               title="Comparação de Lucro Atual vs Lucro com Máquina Automática")
@@ -253,7 +254,6 @@ else:
         col3.plotly_chart(fig)
 
         if sl == 'Financiada':
-            # Criando o gráfico com Plotly
             fig = px.line(df2, x='Meses', y=['Lucro Atual', 'Lucro com Máquina Automática'], 
                 labels={'value': 'Lucro (R$)', 'Meses': 'Período'}, 
                 title="Comparação de Lucro Atual vs Lucro com Máquina Automática")
